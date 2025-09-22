@@ -1,4 +1,4 @@
-// team 1: Issac, Brittany, Raj Dalsaniya
+// team 1: Issac, Brittany Avalos-Ortiz, Raj Dalsaniya
 
 package com.example.rhithmfit;
 
