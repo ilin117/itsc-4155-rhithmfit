@@ -51,5 +51,5 @@ A unique feature of RhithmFit is its **music motivation system**: based on the u
 ### Installation
 1. Clone the repository:  
    ```bash
-   git clone https://github.com/4155-project/rhithmfit.git
-   cd rhithmfit
+   git clone https://github.com/ilin117/itsc-4155-rhithmfit.git
+   cd itsc-4155-rhithmfit
