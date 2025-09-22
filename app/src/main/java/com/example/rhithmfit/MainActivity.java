@@ -1,3 +1,5 @@
+// team 1: Issac, Brittany, Raj
+
 package com.example.rhithmfit;
 
 import android.os.Bundle;
