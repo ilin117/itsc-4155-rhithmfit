@@ -26,17 +26,7 @@ public class MainActivity extends AppCompatActivity implements HomepageFragment.
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        String uri = "<connection string uri>";
-        try (MongoClient mongoClient = MongoClients.create(uri)) {
-            MongoDatabase database = mongoClient.getDatabase("sample_mflix");
-            MongoCollection<Document> collection = database.getCollection("movies");
-            Document doc = collection.find(eq("title", "Back to the Future")).first();
-            if (doc != null) {
-                System.out.println(doc.toJson());
-            } else {
-                System.out.println("No matching documents found.");
-            }
-        }
+
 
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.main, new HomepageFragment()).commit();
