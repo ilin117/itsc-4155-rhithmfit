@@ -10,9 +10,11 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.rhithmfit.fragments.HomepageFragment;
 import com.example.rhithmfit.fragments.LoginFragment;
+import com.example.rhithmfit.fragments.SignupFragment;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements HomepageFragment.HomepageListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +28,22 @@ public class MainActivity extends AppCompatActivity {
         });
 
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.main, new LoginFragment()).commit();
+                .replace(R.id.main, new HomepageFragment()).commit();
+    }
+
+    @Override
+    public void gotoLogin() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.main, new LoginFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void gotoSignup() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.main, new SignupFragment())
+                .addToBackStack(null)
+                .commit();
     }
 }
