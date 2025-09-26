@@ -11,13 +11,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.rhithmfit.R;
-import com.example.rhithmfit.databinding.FragmentHomepageBinding;
+import com.example.rhithmfit.databinding.FragmentLandingBinding;
 
-public class HomepageFragment extends Fragment {
+public class LandingFragment extends Fragment {
 
-    FragmentHomepageBinding binding;
-    public HomepageFragment() {
+    FragmentLandingBinding binding;
+    public LandingFragment() {
         // Required empty public constructor
     }
 
@@ -25,7 +24,7 @@ public class HomepageFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        binding = FragmentHomepageBinding.inflate(inflater, container, false);
+        binding = FragmentLandingBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 

@@ -10,11 +10,12 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.rhithmfit.fragments.HomepageFragment;
+import com.example.rhithmfit.fragments.HomeFragment;
+import com.example.rhithmfit.fragments.LandingFragment;
 import com.example.rhithmfit.fragments.LoginFragment;
 import com.example.rhithmfit.fragments.SignupFragment;
 
-public class MainActivity extends AppCompatActivity implements HomepageFragment.HomepageListener {
+public class MainActivity extends AppCompatActivity implements LandingFragment.HomepageListener, LoginFragment.LoginListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements HomepageFragment.
 
 
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.main, new HomepageFragment()).commit();
+                .replace(R.id.main, new LandingFragment()).commit();
     }
 
     @Override
@@ -46,5 +47,26 @@ public class MainActivity extends AppCompatActivity implements HomepageFragment.
                 .replace(R.id.main, new SignupFragment())
                 .addToBackStack(null)
                 .commit();
+    }
+
+    @Override
+    public void goToRegister() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.main, new SignupFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void onLoginSuccessful() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.main, new HomeFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void backToHome() {
+        getSupportFragmentManager().popBackStack();
     }
 }
