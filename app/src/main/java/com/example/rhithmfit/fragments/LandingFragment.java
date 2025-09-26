@@ -34,35 +34,35 @@ public class LandingFragment extends Fragment {
         binding.BtnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.gotoLogin();
+                listener.goToLogin();
             }
         });
 
         binding.BtnRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.gotoLogin();
+                listener.gotoSignup();
             }
         });
 
 
     }
 
-    HomepageListener mListener;
+    LandingListener listener;
 
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        if (context instanceof HomepageListener) {
-            mListener = (HomepageListener) context;
+        if (context instanceof LandingListener) {
+            listener = (LandingListener) context;
         }
         else {
             throw new RuntimeException(context.toString());
         }
     }
 
-    public interface HomepageListener {
-        void gotoLogin();
+    public interface LandingListener {
+        void goToLogin();
         void gotoSignup();
     }
 }

@@ -21,7 +21,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginFragment extends Fragment {
     FragmentLoginBinding binding;
-    private FirebaseAuth mAuth;
+    private FirebaseAuth firebase_auth;
 
     public LoginFragment() {
         // Required empty public constructor
@@ -38,13 +38,21 @@ public class LoginFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mAuth = FirebaseAuth.getInstance();
+        firebase_auth = FirebaseAuth.getInstance();
 
-        // back button
-        binding.buttonBack.setOnClickListener(new View.OnClickListener() {
+        // forget password
+        binding.textViewPasswordResetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.backToHome();
+                listener.goToPasswordReset();
+            }
+        });
+
+        // back button
+        binding.buttonBackLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                listener.back();
             }
         });
 
@@ -52,7 +60,7 @@ public class LoginFragment extends Fragment {
         binding.textViewRegisterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.goToRegister();
+                listener.goToRegister();
             }
         });
 
@@ -60,18 +68,18 @@ public class LoginFragment extends Fragment {
         binding.buttonLogin.setOnClickListener(v -> {
             String email = binding.editTextEmail.getText().toString();
             String password = binding.editTextPassword.getText().toString();
-            if (email.isEmpty()) {
-                Toast.makeText(getActivity(), "Please enter an email.", Toast.LENGTH_SHORT).show();
-            }
-            else if (password.isEmpty()) {
-                Toast.makeText(getActivity(), "Please enter a password.", Toast.LENGTH_SHORT).show();
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(getActivity(), "Please enter all required information.", Toast.LENGTH_SHORT).show();
             }
             else {
-                mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                firebase_auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            mListener.onLoginSuccessful();
+                            listener.onLoginSuccessful();
+                        }
+                        else {
+                            Toast.makeText(getActivity(), "Incorrect email or password", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -80,13 +88,13 @@ public class LoginFragment extends Fragment {
     }
 
 
-    LoginListener mListener;
+    LoginListener listener;
 
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         if (context instanceof LoginListener) {
-            mListener = (LoginListener) context;
+            listener = (LoginListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement LoginListener");
@@ -96,6 +104,7 @@ public class LoginFragment extends Fragment {
     public interface LoginListener {
         void goToRegister();
         void onLoginSuccessful();
-        void backToHome();
+        void back();
+        void goToPasswordReset();
     }
 }

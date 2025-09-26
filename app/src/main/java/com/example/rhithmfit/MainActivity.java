@@ -13,10 +13,13 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.rhithmfit.fragments.HomeFragment;
 import com.example.rhithmfit.fragments.LandingFragment;
 import com.example.rhithmfit.fragments.LoginFragment;
+import com.example.rhithmfit.fragments.PasswordResetFragment;
 import com.example.rhithmfit.fragments.SignupFragment;
+import com.google.firebase.auth.FirebaseAuth;
 
-public class MainActivity extends AppCompatActivity implements LandingFragment.HomepageListener, LoginFragment.LoginListener {
+public class MainActivity extends AppCompatActivity implements LandingFragment.LandingListener, LoginFragment.LoginListener, PasswordResetFragment.PasswordResetListener, HomeFragment.HomeListener, SignupFragment.SignupListener {
 
+    FirebaseAuth firebase_auth;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,13 +31,21 @@ public class MainActivity extends AppCompatActivity implements LandingFragment.H
             return insets;
         });
 
+        // remembers current user
+        firebase_auth = FirebaseAuth.getInstance();
 
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.main, new LandingFragment()).commit();
+        if (firebase_auth.getCurrentUser() == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.main, new LandingFragment()).commit();
+        }
+        else {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.main, new HomeFragment()).commit();
+        }
     }
 
     @Override
-    public void gotoLogin() {
+    public void goToLogin() {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.main, new LoginFragment())
                 .addToBackStack(null)
@@ -66,7 +77,31 @@ public class MainActivity extends AppCompatActivity implements LandingFragment.H
     }
 
     @Override
-    public void backToHome() {
+    public void onRegisterSuccess() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.main, new HomeFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void back() {
         getSupportFragmentManager().popBackStack();
+    }
+
+    @Override
+    public void goToPasswordReset() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.main, new PasswordResetFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void logout() {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.main, new LandingFragment())
+                .commit();
     }
 }
