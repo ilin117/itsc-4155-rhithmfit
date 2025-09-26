@@ -62,6 +62,7 @@ public class PasswordResetFragment extends Fragment {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
+                                listener.back();
                                 Toast.makeText(getActivity(), "Password reset email sent. Check spam.", Toast.LENGTH_SHORT).show();
                             }
                             else {
