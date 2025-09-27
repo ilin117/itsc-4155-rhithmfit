@@ -6,7 +6,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.util.Log;
@@ -15,19 +14,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.example.rhithmfit.BuildConfig;
 import com.example.rhithmfit.viewModels.SpotifyViewModel;
-import com.spotify.android.appremote.api.ConnectionParams;
-import com.spotify.android.appremote.api.Connector;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
 
-import com.spotify.protocol.client.Subscription;
-import com.spotify.protocol.types.PlayerState;
-import com.spotify.protocol.types.Track;
-
-import com.example.rhithmfit.R;
 import com.example.rhithmfit.databinding.FragmentHomeBinding;
-import com.google.firebase.Firebase;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class HomeFragment extends Fragment {
@@ -38,13 +28,32 @@ public class HomeFragment extends Fragment {
     private SpotifyAppRemote mSpotifyAppRemote;
     SpotifyViewModel spotifyViewModel;
 
+    String workout_intensity;
+
     public HomeFragment() {
         // Required empty public constructor
+    }
+
+    public static HomeFragment newInstance(String workout_intensity) {
+
+        Bundle args = new Bundle();
+        args.putString("Intensity", workout_intensity);
+        HomeFragment fragment = new HomeFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            workout_intensity = getArguments().getString("Intensity");
+        }
         spotifyViewModel = new ViewModelProvider(requireActivity()).get(SpotifyViewModel.class);
     }
 
@@ -61,13 +70,21 @@ public class HomeFragment extends Fragment {
         firebase_auth = FirebaseAuth.getInstance();
         current_user = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
         Log.d("Current User", current_user);
-        binding.textViewUserName.setText(current_user);
+        binding.textViewUserName.setText("Hello "+ current_user + "!");
+        binding.textViewIntensity.setText(workout_intensity);
 
         binding.buttonLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 firebase_auth.signOut();
                 listener.logout();
+            }
+        });
+
+        binding.buttonHomeStartNewWorkout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listener.goToWorkoutCreation();
             }
         });
 
@@ -101,5 +118,6 @@ public class HomeFragment extends Fragment {
 
     public interface HomeListener {
         void logout();
+        void goToWorkoutCreation();
     }
 }

@@ -2,16 +2,11 @@
 
 package com.example.rhithmfit;
 
-import android.app.ComponentCaller;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -24,17 +19,17 @@ import com.example.rhithmfit.fragments.LoginFragment;
 import com.example.rhithmfit.fragments.PasswordResetFragment;
 import com.example.rhithmfit.fragments.SignupFragment;
 import com.example.rhithmfit.fragments.SpotifyCheckFragment;
+import com.example.rhithmfit.fragments.WorkoutCreationFragment;
 import com.example.rhithmfit.viewModels.SpotifyViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
-import com.spotify.protocol.types.Track;
 import com.spotify.sdk.android.auth.AuthorizationClient;
 import com.spotify.sdk.android.auth.AuthorizationRequest;
 import com.spotify.sdk.android.auth.AuthorizationResponse;
 
-public class MainActivity extends AppCompatActivity implements SpotifyCheckFragment.SpotifyCheckListener, LandingFragment.LandingListener, LoginFragment.LoginListener, PasswordResetFragment.PasswordResetListener, HomeFragment.HomeListener, SignupFragment.SignupListener {
+public class MainActivity extends AppCompatActivity implements WorkoutCreationFragment.WorkoutCreationListener, SpotifyCheckFragment.SpotifyCheckListener, LandingFragment.LandingListener, LoginFragment.LoginListener, PasswordResetFragment.PasswordResetListener, HomeFragment.HomeListener, SignupFragment.SignupListener {
 
     // spotify
     private static final int REQUEST_CODE = 1337;
@@ -122,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements SpotifyCheckFragm
     @Override
     public void onRegisterSuccess() {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.main, new HomeFragment())
+                .replace(R.id.main, new SpotifyCheckFragment())
                 .addToBackStack(null)
                 .commit();
     }
@@ -130,6 +125,14 @@ public class MainActivity extends AppCompatActivity implements SpotifyCheckFragm
     @Override
     public void back() {
         getSupportFragmentManager().popBackStack();
+    }
+
+    @Override
+    public void sendToHome(String intensity) {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.main, HomeFragment.newInstance(intensity))
+                .addToBackStack(null)
+                .commit();
     }
 
     @Override
@@ -145,6 +148,15 @@ public class MainActivity extends AppCompatActivity implements SpotifyCheckFragm
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.main, new LandingFragment())
+                .commit();
+    }
+
+    @Override
+    public void goToWorkoutCreation() {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.main, new WorkoutCreationFragment())
+                .addToBackStack(null)
                 .commit();
     }
 

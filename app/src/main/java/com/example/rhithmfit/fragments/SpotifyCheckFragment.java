@@ -6,6 +6,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.view.LayoutInflater;
@@ -18,6 +19,7 @@ import com.example.rhithmfit.R;
 import com.example.rhithmfit.databinding.FragmentLandingBinding;
 import com.example.rhithmfit.databinding.FragmentSpotifyCheckBinding;
 import com.example.rhithmfit.viewModels.SpotifyViewModel;
+import com.spotify.android.appremote.api.SpotifyAppRemote;
 
 public class SpotifyCheckFragment extends Fragment {
 
@@ -53,12 +55,13 @@ public class SpotifyCheckFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 listener.connectSpotify();
-                if (spotifyViewModel.getSpotifyAppRemote().getValue() != null) {
-                    listener.onSpotifyConnection();
-                }
-                else {
-                    Toast.makeText(getContext(), "Spotify app not connected", Toast.LENGTH_SHORT).show();
-                }
+                spotifyViewModel.getSpotifyAppRemote().observe(getViewLifecycleOwner(), new Observer<SpotifyAppRemote>() {
+                    @Override
+                    public void onChanged(SpotifyAppRemote spotifyAppRemote) {
+                        listener.onSpotifyConnection();
+                        Toast.makeText(getActivity(), "Spotify Connected!", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
     }
