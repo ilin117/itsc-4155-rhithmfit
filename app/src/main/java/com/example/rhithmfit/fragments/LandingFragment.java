@@ -1,20 +1,22 @@
 package com.example.rhithmfit.fragments;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.rhithmfit.BuildConfig;
 import com.example.rhithmfit.databinding.FragmentLandingBinding;
 
 public class LandingFragment extends Fragment {
-
     FragmentLandingBinding binding;
     public LandingFragment() {
         // Required empty public constructor
@@ -31,6 +33,7 @@ public class LandingFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         binding.BtnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

@@ -2,24 +2,50 @@
 
 package com.example.rhithmfit;
 
+import android.app.ComponentCaller;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.rhithmfit.fragments.HomeFragment;
 import com.example.rhithmfit.fragments.LandingFragment;
 import com.example.rhithmfit.fragments.LoginFragment;
 import com.example.rhithmfit.fragments.PasswordResetFragment;
 import com.example.rhithmfit.fragments.SignupFragment;
+import com.example.rhithmfit.fragments.SpotifyCheckFragment;
+import com.example.rhithmfit.viewModels.SpotifyViewModel;
 import com.google.firebase.auth.FirebaseAuth;
+import com.spotify.android.appremote.api.ConnectionParams;
+import com.spotify.android.appremote.api.Connector;
+import com.spotify.android.appremote.api.SpotifyAppRemote;
+import com.spotify.protocol.types.Track;
+import com.spotify.sdk.android.auth.AuthorizationClient;
+import com.spotify.sdk.android.auth.AuthorizationRequest;
+import com.spotify.sdk.android.auth.AuthorizationResponse;
 
-public class MainActivity extends AppCompatActivity implements LandingFragment.LandingListener, LoginFragment.LoginListener, PasswordResetFragment.PasswordResetListener, HomeFragment.HomeListener, SignupFragment.SignupListener {
+public class MainActivity extends AppCompatActivity implements SpotifyCheckFragment.SpotifyCheckListener, LandingFragment.LandingListener, LoginFragment.LoginListener, PasswordResetFragment.PasswordResetListener, HomeFragment.HomeListener, SignupFragment.SignupListener {
 
+    // spotify
+    private static final int REQUEST_CODE = 1337;
+    private static final String CLIENT_ID = BuildConfig.SPOTIFY_CLIENT_ID;
+    private static final String REDIRECT_URI = "rhithmfit://callback";
+    private SpotifyAppRemote mSpotifyAppRemote;
+    private SpotifyViewModel spotifyViewModel;
+
+    // firebase
     FirebaseAuth firebase_auth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,16 +57,33 @@ public class MainActivity extends AppCompatActivity implements LandingFragment.L
             return insets;
         });
 
+        spotifyViewModel = new ViewModelProvider(this).get(SpotifyViewModel.class);
+
         // remembers current user
         firebase_auth = FirebaseAuth.getInstance();
 
-        if (firebase_auth.getCurrentUser() == null) {
+        if (firebase_auth.getCurrentUser() == null && mSpotifyAppRemote == null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.main, new LandingFragment()).commit();
+        }
+        else if (mSpotifyAppRemote == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.main, new SpotifyCheckFragment()).commit();
         }
         else {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.main, new HomeFragment()).commit();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mSpotifyAppRemote.getPlayerApi().pause();
+        Log.d("NNN", "onStop:" + mSpotifyAppRemote.toString());
+        if (mSpotifyAppRemote != null) {
+            SpotifyAppRemote.disconnect(mSpotifyAppRemote);
+            Log.d("NNN", "onStop:" + mSpotifyAppRemote.toString());
         }
     }
 
@@ -71,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements LandingFragment.L
     @Override
     public void onLoginSuccessful() {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.main, new HomeFragment())
+                .replace(R.id.main, new SpotifyCheckFragment())
                 .addToBackStack(null)
                 .commit();
     }
@@ -102,6 +145,64 @@ public class MainActivity extends AppCompatActivity implements LandingFragment.L
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.main, new LandingFragment())
+                .commit();
+    }
+
+    // spotify auth flow. these two methods are connected
+    @Override
+    public void connectSpotify() {
+        AuthorizationRequest.Builder builder =
+                new AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI)
+                        .setScopes(new String[]{"app-remote-control", "user-modify-playback-state"})
+                        .setShowDialog(true);
+
+        AuthorizationRequest request = builder.build();
+        AuthorizationClient.openLoginActivity(this, REQUEST_CODE, request);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+
+        if (requestCode == REQUEST_CODE) {
+            AuthorizationResponse response = AuthorizationClient.getResponse(resultCode, intent);
+
+            switch (response.getType()) {
+                case TOKEN:
+                    ConnectionParams connectionParams =
+                            new ConnectionParams.Builder(CLIENT_ID)
+                                    .setRedirectUri(REDIRECT_URI)
+                                    .showAuthView(true)
+                                    .build();
+
+                    SpotifyAppRemote.connect(this, connectionParams, new Connector.ConnectionListener() {
+                        @Override
+                        public void onConnected(SpotifyAppRemote spotifyAppRemote) {
+                            mSpotifyAppRemote = spotifyAppRemote;
+                            spotifyViewModel.setSpotifyAppRemote(mSpotifyAppRemote);
+                        }
+
+                        @Override
+                        public void onFailure(Throwable throwable) {
+                            Log.e("MainActivity", "Failed to connect", throwable);
+                        }
+                    });
+                    break;
+                case ERROR:
+                    Log.e("MainActivity", "Auth error: " + response.getError());
+                    break;
+                default:
+                    Log.d("MainActivity", "Auth cancelled or unknown");
+            }
+        }
+    }
+    // end
+
+    @Override
+    public void onSpotifyConnection() {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.main, new HomeFragment())
                 .commit();
     }
 }
