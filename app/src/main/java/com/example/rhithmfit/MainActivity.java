@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements WorkoutCreationFr
     private static final String REDIRECT_URI = "rhithmfit://callback";
     private SpotifyAppRemote mSpotifyAppRemote;
     private SpotifyViewModel spotifyViewModel;
+    private String accessToken;
 
     // firebase
     FirebaseAuth firebase_auth;
@@ -192,6 +193,7 @@ public class MainActivity extends AppCompatActivity implements WorkoutCreationFr
                         public void onConnected(SpotifyAppRemote spotifyAppRemote) {
                             mSpotifyAppRemote = spotifyAppRemote;
                             spotifyViewModel.setSpotifyAppRemote(mSpotifyAppRemote);
+                            spotifyViewModel.setAccessToken(response.getAccessToken());
                         }
 
                         @Override

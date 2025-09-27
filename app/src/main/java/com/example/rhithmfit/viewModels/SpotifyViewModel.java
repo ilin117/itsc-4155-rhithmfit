@@ -12,14 +12,12 @@ import com.spotify.android.appremote.api.SpotifyAppRemote;
 
 public class SpotifyViewModel extends AndroidViewModel {
     MutableLiveData<SpotifyAppRemote> spotifyAppRemote;
-    private final MutableLiveData<String> accessToken = new MutableLiveData<>(null);
-    private static final int REQUEST_CODE = 1337;
-    private static final String CLIENT_ID = BuildConfig.SPOTIFY_CLIENT_ID;
-    private static final String REDIRECT_URI = "rhithmfit://callback";
+    MutableLiveData<String> accessToken;
 
     public SpotifyViewModel(@NonNull Application application) {
         super(application);
         spotifyAppRemote = new MutableLiveData<>();
+        accessToken = new MutableLiveData<>();
     }
 
     public void setSpotifyAppRemote(SpotifyAppRemote remote) {
@@ -29,6 +27,12 @@ public class SpotifyViewModel extends AndroidViewModel {
     public MutableLiveData<SpotifyAppRemote> getSpotifyAppRemote() {
         return spotifyAppRemote;
     }
-    public void setAccessToken(String token) { accessToken.setValue(token); }
-    public LiveData<String> getAccessToken() { return accessToken; }
+
+    public void setAccessToken(String token) {
+        accessToken.setValue(token);
+    }
+
+    public MutableLiveData<String> getAccessToken() {
+        return accessToken;
+    }
 }

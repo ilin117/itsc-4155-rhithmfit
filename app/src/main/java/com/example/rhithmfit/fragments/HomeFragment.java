@@ -26,6 +26,7 @@ public class HomeFragment extends Fragment {
     FirebaseAuth firebase_auth;
 
     private SpotifyAppRemote mSpotifyAppRemote;
+    private String accessToken;
     SpotifyViewModel spotifyViewModel;
 
     String workout_intensity;
@@ -71,6 +72,7 @@ public class HomeFragment extends Fragment {
         Log.d("Current User", current_user);
         binding.textViewUserName.setText("Hello "+ current_user + "!");
         binding.textViewIntensity.setText(workout_intensity);
+        binding.textViewAccessToken.setText(spotifyViewModel.getAccessToken().getValue());
 
         binding.buttonLogout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,7 +97,8 @@ public class HomeFragment extends Fragment {
                     Log.d("PPP", "Spotify app not connected");
                 }
                 else {
-                    Log.d("PPP", "Spotify app connected. Song Playing");
+                    accessToken = spotifyViewModel.getAccessToken().getValue();
+                    Log.d("PPP", accessToken);
                     mSpotifyAppRemote.getPlayerApi().play("spotify:track:4R5bSS8yoCl2czeWLr61aO");
                 }
             }
