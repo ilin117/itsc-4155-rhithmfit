@@ -65,10 +65,8 @@ public class MainActivity extends AppCompatActivity implements WorkoutCreationFr
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.main, new SpotifyCheckFragment()).commit();
         }
-        else {
-            getSupportFragmentManager().beginTransaction()
+        else getSupportFragmentManager().beginTransaction()
                     .replace(R.id.main, new HomeFragment()).commit();
-        }
     }
 
     @Override
@@ -165,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements WorkoutCreationFr
     public void connectSpotify() {
         AuthorizationRequest.Builder builder =
                 new AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI)
-                        .setScopes(new String[]{"app-remote-control", "user-modify-playback-state"})
+                        .setScopes(new String[]{"app-remote-control", "user-modify-playback-state", "user-library-read", "playlist-read-private"})
                         .setShowDialog(true);
 
         AuthorizationRequest request = builder.build();
@@ -181,6 +179,8 @@ public class MainActivity extends AppCompatActivity implements WorkoutCreationFr
 
             switch (response.getType()) {
                 case TOKEN:
+                    String accessToken = response.getAccessToken();
+                    spotifyViewModel.setAccessToken(accessToken);
                     ConnectionParams connectionParams =
                             new ConnectionParams.Builder(CLIENT_ID)
                                     .setRedirectUri(REDIRECT_URI)
@@ -215,6 +215,14 @@ public class MainActivity extends AppCompatActivity implements WorkoutCreationFr
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.main, new HomeFragment())
+                .commit();
+    }
+    @Override
+    public void openMusic() {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.main, new com.example.rhithmfit.fragments.MusicFragment())
+                .addToBackStack(null)
                 .commit();
     }
 }

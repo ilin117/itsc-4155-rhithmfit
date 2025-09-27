@@ -33,6 +33,7 @@ public class HomeFragment extends Fragment {
     public HomeFragment() {
         // Required empty public constructor
     }
+<<<<<<< HEAD
 
     public static HomeFragment newInstance(String workout_intensity) {
 
@@ -48,6 +49,8 @@ public class HomeFragment extends Fragment {
         super.onStart();
     }
 
+=======
+>>>>>>> 8795486 (Added Spotify Fetch)
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,6 +104,9 @@ public class HomeFragment extends Fragment {
                 }
             }
         });
+        binding.buttonOpenMusic.setOnClickListener(v ->{
+            listener.openMusic();
+        });
     }
 
 
@@ -118,6 +124,10 @@ public class HomeFragment extends Fragment {
 
     public interface HomeListener {
         void logout();
+<<<<<<< HEAD
         void goToWorkoutCreation();
+=======
+        void openMusic();
+>>>>>>> 8795486 (Added Spotify Fetch)
     }
 }
