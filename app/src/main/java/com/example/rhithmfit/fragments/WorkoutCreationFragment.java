@@ -41,21 +41,21 @@ public class WorkoutCreationFragment extends Fragment {
         binding.buttonLowIntensity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                listener.sendToHome("Low");
+                listener.sendToBuilder("Low");
             }
         });
 
         binding.buttonMidIntensity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                listener.sendToHome("Mid");
+                listener.sendToBuilder("Mid");
             }
         });
 
         binding.buttonHighIntensity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                listener.sendToHome("High");
+                listener.sendToBuilder("High");
             }
         });
     }
@@ -74,6 +74,6 @@ public class WorkoutCreationFragment extends Fragment {
 
     public interface WorkoutCreationListener {
         void back();
-        void sendToHome(String intensity);
+        void sendToBuilder(String intensity);
     }
 }

@@ -12,6 +12,8 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.rhithmfit.R;
+import com.example.rhithmfit.databinding.FragmentHomeBinding;
+import com.example.rhithmfit.databinding.FragmentMusicBinding;
 import com.example.rhithmfit.viewModels.SpotifyViewModel;
 
 import org.json.*;
@@ -39,6 +41,7 @@ public class MusicFragment extends Fragment {
 
     private final OkHttpClient http = new OkHttpClient();
     private final Handler main = new Handler(Looper.getMainLooper());
+    FragmentMusicBinding binding;
 
     public MusicFragment() {}
 
@@ -46,19 +49,30 @@ public class MusicFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         spotifyViewModel = new ViewModelProvider(requireActivity()).get(SpotifyViewModel.class);
-        setRetainInstance(true);
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_music, container, false);
-        progressBar = v.findViewById(R.id.progress);
-        listView = v.findViewById(R.id.listSongs);
+        binding = FragmentMusicBinding.inflate(inflater, container, false);
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        progressBar = binding.progress;
+        listView = binding.listSongs;
         adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, titles);
         listView.setAdapter(adapter);
-        v.findViewById(R.id.buttonFetch).setOnClickListener(view -> startFetch());
-        return v;
+
+        binding.buttonFetch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startFetch();
+            }
+        });
+
     }
 
     private void startFetch() {

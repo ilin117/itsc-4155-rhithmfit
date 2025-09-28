@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.rhithmfit.BuildConfig;
+import com.example.rhithmfit.databinding.FragmentMusicBinding;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
 
 public class SpotifyViewModel extends AndroidViewModel {

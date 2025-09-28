@@ -29,8 +29,6 @@ public class HomeFragment extends Fragment {
     private String accessToken;
     SpotifyViewModel spotifyViewModel;
 
-    String workout_intensity;
-
     public HomeFragment() {
         // Required empty public constructor
     }
@@ -51,9 +49,6 @@ public class HomeFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            workout_intensity = getArguments().getString("Intensity");
-        }
         spotifyViewModel = new ViewModelProvider(requireActivity()).get(SpotifyViewModel.class);
     }
 
@@ -71,8 +66,6 @@ public class HomeFragment extends Fragment {
         current_user = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
         Log.d("Current User", current_user);
         binding.textViewUserName.setText("Hello "+ current_user + "!");
-        binding.textViewIntensity.setText(workout_intensity);
-        binding.textViewAccessToken.setText(spotifyViewModel.getAccessToken().getValue());
 
         binding.buttonLogout.setOnClickListener(new View.OnClickListener() {
             @Override

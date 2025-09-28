@@ -16,9 +16,12 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.rhithmfit.fragments.HomeFragment;
 import com.example.rhithmfit.fragments.LandingFragment;
 import com.example.rhithmfit.fragments.LoginFragment;
+import com.example.rhithmfit.fragments.MusicFragment;
 import com.example.rhithmfit.fragments.PasswordResetFragment;
 import com.example.rhithmfit.fragments.SignupFragment;
 import com.example.rhithmfit.fragments.SpotifyCheckFragment;
+import com.example.rhithmfit.fragments.WorkoutBuilderFragment;
+import com.example.rhithmfit.fragments.WorkoutCompletedFragment;
 import com.example.rhithmfit.fragments.WorkoutCreationFragment;
 import com.example.rhithmfit.viewModels.SpotifyViewModel;
 import com.google.firebase.auth.FirebaseAuth;
@@ -29,7 +32,7 @@ import com.spotify.sdk.android.auth.AuthorizationClient;
 import com.spotify.sdk.android.auth.AuthorizationRequest;
 import com.spotify.sdk.android.auth.AuthorizationResponse;
 
-public class MainActivity extends AppCompatActivity implements WorkoutCreationFragment.WorkoutCreationListener, SpotifyCheckFragment.SpotifyCheckListener, LandingFragment.LandingListener, LoginFragment.LoginListener, PasswordResetFragment.PasswordResetListener, HomeFragment.HomeListener, SignupFragment.SignupListener {
+public class MainActivity extends AppCompatActivity implements WorkoutCompletedFragment.WorkoutCompletedListener, WorkoutBuilderFragment.WorkoutBuilderListener, WorkoutCreationFragment.WorkoutCreationListener, SpotifyCheckFragment.SpotifyCheckListener, LandingFragment.LandingListener, LoginFragment.LoginListener, PasswordResetFragment.PasswordResetListener, HomeFragment.HomeListener, SignupFragment.SignupListener {
 
     // spotify
     private static final int REQUEST_CODE = 1337;
@@ -127,9 +130,17 @@ public class MainActivity extends AppCompatActivity implements WorkoutCreationFr
     }
 
     @Override
-    public void sendToHome(String intensity) {
+    public void sendToWorkoutCompleted() {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.main, HomeFragment.newInstance(intensity))
+                .replace(R.id.main, new WorkoutCompletedFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void sendToBuilder(String intensity) {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.main, WorkoutBuilderFragment.newInstance(intensity))
                 .addToBackStack(null)
                 .commit();
     }
@@ -164,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements WorkoutCreationFr
     public void connectSpotify() {
         AuthorizationRequest.Builder builder =
                 new AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI)
-                        .setScopes(new String[]{"app-remote-control", "user-modify-playback-state", "user-library-read", "playlist-read-private"})
+                        .setScopes(new String[]{"app-remote-control", "user-modify-playback-state", "user-library-read", "playlist-read-private", "user-read-private"})
                         .setShowDialog(true);
 
         AuthorizationRequest request = builder.build();
@@ -223,7 +234,16 @@ public class MainActivity extends AppCompatActivity implements WorkoutCreationFr
     public void openMusic() {
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.main, new com.example.rhithmfit.fragments.MusicFragment())
+                .replace(R.id.main, new MusicFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void sendToHome() {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.main, HomeFragment.newInstance("Hello"))
                 .addToBackStack(null)
                 .commit();
     }
