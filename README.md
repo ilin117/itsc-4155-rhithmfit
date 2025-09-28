@@ -36,7 +36,7 @@ A unique feature of RhithmFit is its **music motivation system**: based on the u
 
 ## Tech Stack
 - **Language**: Java (with JUnit for testing)  
-- **Database**: MongoDB  
+- **Database**: Firebase  
 - **Version Control**: Git  
 - **Design & Modeling**: UML  
 
