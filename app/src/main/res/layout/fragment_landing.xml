@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/grey"
-    tools:context=".fragments.HomepageFragment">
+    tools:context=".fragments.LandingFragment">
 
     <Button
         android:id="@+id/BtnLogin"
@@ -14,7 +14,9 @@
         android:layout_height="62dp"
         android:layout_marginTop="496dp"
         android:backgroundTint="@color/teal"
+        android:fontFamily="@font/roboto_regular"
         android:text="Login"
+        android:textSize="20sp"
         app:cornerRadius="14dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -26,7 +28,9 @@
         android:layout_height="62dp"
         android:layout_marginTop="8dp"
         android:backgroundTint="@color/teal"
+        android:fontFamily="@font/roboto_regular"
         android:text="Register"
+        android:textSize="20sp"
         app:cornerRadius="14dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -36,20 +40,26 @@
         android:id="@+id/imageView"
         android:layout_width="171dp"
         android:layout_height="273dp"
+        android:layout_marginTop="24dp"
         android:src="@drawable/music"
-        tools:layout_editor_absoluteX="120dp"
-        tools:layout_editor_absoluteY="70dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/roboto_regular"
         android:text="@string/app_name"
         android:textColor="@color/white"
         android:textSize="30sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="@+id/imageView"
         app:layout_constraintHorizontal_bias="0.487"
         app:layout_constraintStart_toStartOf="@+id/imageView"
-        tools:layout_editor_absoluteY="311dp" />
+        app:layout_constraintTop_toBottomOf="@+id/imageView" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
 

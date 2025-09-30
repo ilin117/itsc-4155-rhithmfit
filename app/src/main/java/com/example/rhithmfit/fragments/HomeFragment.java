@@ -1,66 +1,122 @@
 package com.example.rhithmfit.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
-import com.example.rhithmfit.R;
+import com.example.rhithmfit.viewModels.SpotifyViewModel;
+import com.spotify.android.appremote.api.SpotifyAppRemote;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link HomeFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import com.example.rhithmfit.databinding.FragmentHomeBinding;
+import com.google.firebase.auth.FirebaseAuth;
+
 public class HomeFragment extends Fragment {
+    String current_user;
+    FragmentHomeBinding binding;
+    FirebaseAuth firebase_auth;
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private SpotifyAppRemote mSpotifyAppRemote;
+    private String accessToken;
+    SpotifyViewModel spotifyViewModel;
 
     public HomeFragment() {
         // Required empty public constructor
     }
+    public static HomeFragment newInstance(String workout_intensity) {
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment HomeFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static HomeFragment newInstance(String param1, String param2) {
-        HomeFragment fragment = new HomeFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString("Intensity", workout_intensity);
+        HomeFragment fragment = new HomeFragment();
         fragment.setArguments(args);
         return fragment;
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+        spotifyViewModel = new ViewModelProvider(requireActivity()).get(SpotifyViewModel.class);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_home, container, false);
+        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        firebase_auth = FirebaseAuth.getInstance();
+        current_user = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+        Log.d("Current User", current_user);
+        binding.textViewUserName.setText("Hello "+ current_user + "!");
+
+        binding.buttonLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                firebase_auth.signOut();
+                listener.logout();
+            }
+        });
+
+        binding.buttonHomeStartNewWorkout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listener.goToWorkoutCreation();
+            }
+        });
+
+        binding.buttonLLLLL.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mSpotifyAppRemote = spotifyViewModel.getSpotifyAppRemote().getValue();
+                if (mSpotifyAppRemote == null) {
+                    Log.d("PPP", "Spotify app not connected");
+                }
+                else {
+                    accessToken = spotifyViewModel.getAccessToken().getValue();
+                    Log.d("PPP", accessToken);
+                    mSpotifyAppRemote.getPlayerApi().play("spotify:track:4R5bSS8yoCl2czeWLr61aO");
+                }
+            }
+        });
+        binding.buttonOpenMusic.setOnClickListener(v ->{
+            listener.openMusic();
+        });
+    }
+
+
+    HomeListener listener;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof HomeListener) {
+            listener = (HomeListener) context;
+        } else {
+            throw new RuntimeException(context.toString());
+        }
+    }
+
+    public interface HomeListener {
+        void logout();
+        void goToWorkoutCreation();
+        void openMusic();
     }
 }

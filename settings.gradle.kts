@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "RhithmFit"
 include(":app")
- 
+include(":aar_files")

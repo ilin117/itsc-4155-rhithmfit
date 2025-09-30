@@ -36,7 +36,7 @@ A unique feature of RhithmFit is its **music motivation system**: based on the u
 
 ## Tech Stack
 - **Language**: Java (with JUnit for testing)  
-- **Database**: MongoDB  
+- **Database**: Firebase  
 - **Version Control**: Git  
 - **Design & Modeling**: UML  
 
@@ -46,7 +46,7 @@ A unique feature of RhithmFit is its **music motivation system**: based on the u
 ### Prerequisites
 - Android Studio installed  
 - Java Development Kit (JDK 11 or higher)  
-- MongoDB setup (local or cloud-based)  
+- Firebase  
 
 ### Installation
 1. Clone the repository:  

@@ -11,13 +11,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.rhithmfit.R;
-import com.example.rhithmfit.databinding.FragmentHomepageBinding;
+import com.example.rhithmfit.databinding.FragmentLandingBinding;
 
-public class HomepageFragment extends Fragment {
-
-    FragmentHomepageBinding binding;
-    public HomepageFragment() {
+public class LandingFragment extends Fragment {
+    FragmentLandingBinding binding;
+    public LandingFragment() {
         // Required empty public constructor
     }
 
@@ -25,45 +23,46 @@ public class HomepageFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        binding = FragmentHomepageBinding.inflate(inflater, container, false);
+        binding = FragmentLandingBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         binding.BtnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.gotoLogin();
+                listener.goToLogin();
             }
         });
 
         binding.BtnRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.gotoLogin();
+                listener.gotoSignup();
             }
         });
 
 
     }
 
-    HomepageListener mListener;
+    LandingListener listener;
 
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        if (context instanceof HomepageListener) {
-            mListener = (HomepageListener) context;
+        if (context instanceof LandingListener) {
+            listener = (LandingListener) context;
         }
         else {
             throw new RuntimeException(context.toString());
         }
     }
 
-    public interface HomepageListener {
-        void gotoLogin();
+    public interface LandingListener {
+        void goToLogin();
         void gotoSignup();
     }
 }
