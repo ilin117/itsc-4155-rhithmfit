@@ -53,6 +53,8 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.firebase.auth)
+    implementation(libs.recyclerview)
+    implementation(libs.cardview)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -63,4 +65,5 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
     implementation("com.squareup.okhttp3:okhttp:5.1.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.google.firebase:firebase-database:21.0.0")
 }

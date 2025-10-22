@@ -57,6 +57,14 @@ public class WorkoutCompletedFragment extends Fragment {
         binding.buttonWorkoutCompleteYes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String date = new java.text.SimpleDateFormat("MM/dd/yyyy", java.util.Locale.getDefault()).format(new java.util.Date());
+                String intensity = "";
+
+                Bundle result = new Bundle();
+                result.putString("intensity", intensity);
+                result.putString("date", date);
+
+                getParentFragmentManager().setFragmentResult("savedWorkout", result);
                 listener.sendToHome();
             }
         });
