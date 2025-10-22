@@ -28,6 +28,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import okhttp3.Call;
@@ -45,8 +46,10 @@ public class WorkoutBuilderFragment extends Fragment {
     private static final String ME_TRACKS_URL = "https://api.spotify.com/v1/me/tracks";
     private final OkHttpClient http = new OkHttpClient();
     private final List<String> titles = new ArrayList<>();
+    private final List<String> workouts = new ArrayList<>();
     FragmentWorkoutBuilderBinding binding;
-    private ArrayAdapter<String> adapter;
+    private ArrayAdapter<String> songAdapter;
+    private ArrayAdapter<String> workoutAdapter;
     private static final String TAG = "MusicFragment";
     private final Handler main = new Handler(Looper.getMainLooper());
     String workout_intensity;
@@ -84,8 +87,10 @@ public class WorkoutBuilderFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, titles);
-        binding.listViewSongsList.setAdapter(adapter);
+        songAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, titles);
+        workoutAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, workouts);
+        binding.listViewSongsList.setAdapter(songAdapter);
+        binding.listViewWorkoutsList.setAdapter(workoutAdapter);
         binding.textViewBuilderIntensity.setText(workout_intensity + " Intensity Workouts");
 
         binding.buttonBackLogin2.setOnClickListener(new View.OnClickListener() {
@@ -95,6 +100,7 @@ public class WorkoutBuilderFragment extends Fragment {
             }
         });
         startFetch();
+        fetchWorkouts();
 
         binding.buttonCompletedWorkout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -111,16 +117,65 @@ public class WorkoutBuilderFragment extends Fragment {
             return;
         }
         titles.clear();
-        adapter.notifyDataSetChanged();
+        songAdapter.notifyDataSetChanged();
 
-        // Example: fetch only tracks with tempo between 100–140 BPM
-        fetchSavedTracksPaged(token, 0, 5, 100f, 140f);
+        fetchSavedTracksPaged(token, 5);
     }
 
-    private void fetchSavedTracksPaged(String token, int offset, int limit, float minTempo, float maxTempo) {
+    private void fetchWorkouts() {
+        Request request = new Request.Builder()
+                .url("https://exercisedb.p.rapidapi.com/exercises")
+                .addHeader("x-rapidapi-host", "exercisedb.p.rapidapi.com")
+                .addHeader("x-rapidapi-key", "00fb2da46cmsh8e9f4b0be71d476p106048jsn81388490ab95")
+                .build();
+
+        http.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String responseBody = response.body().string();
+
+                    try {
+                        JSONArray exercises = new JSONArray(responseBody);
+                        List<JSONObject> workoutList = new ArrayList<>();
+
+                        for (int i = 0; i < exercises.length(); i++) {
+                            workoutList.add(exercises.getJSONObject(i));
+                        }
+
+                        Collections.shuffle(workoutList);
+                        List<JSONObject> randomSeven = workoutList.subList(0, 7);
+
+                        workouts.clear();
+                        for (JSONObject workout : randomSeven) {
+                            workouts.add(workout.getString("name"));
+                        }
+
+                        main.post(() -> {
+                            workoutAdapter.notifyDataSetChanged();
+                            Log.d("WORKOUTSS", "Displayed: " + workouts);
+                        });
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+    }
+
+    private void fetchSavedTracksPaged(String token, int limit) {
+
+        int randomOffset = new java.util.Random().nextInt(20);
+
         HttpUrl url = HttpUrl.parse(ME_TRACKS_URL).newBuilder()
                 .addQueryParameter("limit", String.valueOf(limit))
-                .addQueryParameter("offset", String.valueOf(offset))
+                .addQueryParameter("offset", String.valueOf(randomOffset))
                 .build();
 
         Request req = new Request.Builder()
@@ -140,124 +195,49 @@ public class WorkoutBuilderFragment extends Fragment {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (!response.isSuccessful()) {
-                    String err = "";
-                    try {
-                        err = response.peekBody(1024 * 1024).string();
-                    } catch (Exception ignored) {}
-                    final String finalErr = err;
-                    main.post(() -> {
-                        Toast.makeText(getContext(), "Spotify API error: " + response.code(), Toast.LENGTH_LONG).show();
-                        Log.e(TAG, "API error " + response.code() + " body=" + finalErr);
-                    });
+                    Log.e(TAG, "Spotify API error: " + response.code() + " " + response.message());
                     return;
                 }
 
-                String json;
-                try (ResponseBody body = response.body()) {
-                    if (body == null) {
-                        main.post(() -> Toast.makeText(getContext(), "Empty response body", Toast.LENGTH_LONG).show());
-                        return;
-                    }
-                    json = body.string();
+                ResponseBody responseBody = response.body();
+                if (responseBody == null) {
+                    Log.e(TAG, "Empty response body");
+                    return;
                 }
 
                 try {
-                    JSONObject root = new JSONObject(json);
-                    JSONArray items = root.optJSONArray("items");
+                    JSONObject json = new JSONObject(responseBody.string());
+                    JSONArray items = json.getJSONArray("items");
 
-                    final List<String> trackIds = new ArrayList<>();
-                    final List<String> trackNames = new ArrayList<>();
+                    List<String> fetchedTitles = new ArrayList<>();
 
-                    if (items != null) {
-                        for (int i = 0; i < items.length(); i++) {
-                            JSONObject savedItem = items.getJSONObject(i);
-                            JSONObject track = savedItem.optJSONObject("track");
-                            if (track != null) {
-                                String id = track.optString("id", null);
-                                String name = track.optString("name", "<unknown>");
-                                if (id != null) {
-                                    trackIds.add(id);
-                                    trackNames.add(name);
-                                }
-                            }
-                        }
+                    for (int i = 0; i < items.length(); i++) {
+                        JSONObject trackObj = items.getJSONObject(i).getJSONObject("track");
+                        String name = trackObj.getString("name");
+                        String artist = trackObj.getJSONArray("artists").getJSONObject(0).getString("name");
+                        fetchedTitles.add(name + " – " + artist);
                     }
 
-                    // Call /audio-features to get tempos
-                    if (!trackIds.isEmpty()) {
-                        HttpUrl featsUrl = HttpUrl.parse("https://api.spotify.com/v1/audio-features")
-                                .newBuilder()
-                                .addQueryParameter("ids", String.join(",", trackIds))
-                                .build();
+                    Collections.shuffle(fetchedTitles);
 
-                        Request featsReq = new Request.Builder()
-                                .url(featsUrl)
-                                .addHeader("Authorization", "Bearer " + token)
-                                .build();
+                    List<String> randomTracks = fetchedTitles.size() > 7
+                            ? fetchedTitles.subList(0, 7)
+                            : fetchedTitles;
 
-                        http.newCall(featsReq).enqueue(new Callback() {
-                            @Override
-                            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                                Log.e(TAG, "Audio features request failed", e);
-                            }
-
-                            @Override
-                            public void onResponse(@NonNull Call call, @NonNull Response resp) throws IOException {
-                                if (!resp.isSuccessful()) {
-                                    Log.e(TAG, "Audio features error " + resp.code());
-                                    return;
-                                }
-
-                                String featsJson = resp.body().string();
-                                try {
-                                    JSONObject featsRoot = new JSONObject(featsJson);
-                                    JSONArray feats = featsRoot.optJSONArray("audio_features");
-
-                                    final List<String> filtered = new ArrayList<>();
-                                    if (feats != null) {
-                                        for (int i = 0; i < feats.length(); i++) {
-                                            JSONObject f = feats.optJSONObject(i);
-                                            if (f != null) {
-                                                float tempo = (float) f.optDouble("tempo", -1);
-                                                String id = f.optString("id");
-                                                int idx = trackIds.indexOf(id);
-                                                if (tempo >= minTempo && tempo <= maxTempo && idx >= 0) {
-                                                    filtered.add(trackNames.get(idx));
-                                                    Log.d(TAG, trackNames.get(idx) + " tempo=" + tempo);
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    main.post(() -> {
-                                        titles.addAll(filtered);
-                                        adapter.notifyDataSetChanged();
-
-                                        final String next = root.optString("next", null);
-                                        final boolean hasNext = next != null && !"null".equals(next);
-                                        if (hasNext) {
-                                            fetchSavedTracksPaged(token, offset + limit, limit, minTempo, maxTempo);
-                                        } else {
-                                            Toast.makeText(getContext(),
-                                                    "Fetched " + titles.size() + " tempo-filtered songs",
-                                                    Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
-
-                                } catch (JSONException e) {
-                                    Log.e(TAG, "Parse audio features error", e);
-                                }
-                            }
-                        });
-                    }
+                    main.post(() -> {
+                        titles.clear();
+                        titles.addAll(randomTracks);
+                        songAdapter.notifyDataSetChanged();
+                        Log.d(TAG, "Randomized " + titles.size() + " Spotify tracks (offset=" + randomOffset + ")");
+                    });
 
                 } catch (JSONException e) {
-                    Log.e(TAG, "JSON parse error", e);
-                    main.post(() -> Toast.makeText(getContext(), "Parse error: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                    Log.e(TAG, "JSON parsing error", e);
                 }
             }
         });
     }
+
 
     WorkoutBuilderListener listener;
 

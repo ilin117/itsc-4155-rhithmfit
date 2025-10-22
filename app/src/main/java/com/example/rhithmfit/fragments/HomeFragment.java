@@ -15,7 +15,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.example.rhithmfit.viewModels.SpotifyViewModel;
-import com.spotify.android.appremote.api.SpotifyAppRemote;
+//import com.spotify.android.appremote.api.SpotifyAppRemote;
 
 import com.example.rhithmfit.databinding.FragmentHomeBinding;
 import com.google.firebase.auth.FirebaseAuth;
@@ -25,7 +25,7 @@ public class HomeFragment extends Fragment {
     FragmentHomeBinding binding;
     FirebaseAuth firebase_auth;
 
-    private SpotifyAppRemote mSpotifyAppRemote;
+//    private SpotifyAppRemote mSpotifyAppRemote;
     private String accessToken;
     SpotifyViewModel spotifyViewModel;
 
@@ -82,23 +82,23 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        binding.buttonLLLLL.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mSpotifyAppRemote = spotifyViewModel.getSpotifyAppRemote().getValue();
-                if (mSpotifyAppRemote == null) {
-                    Log.d("PPP", "Spotify app not connected");
-                }
-                else {
-                    accessToken = spotifyViewModel.getAccessToken().getValue();
-                    Log.d("PPP", accessToken);
-                    mSpotifyAppRemote.getPlayerApi().play("spotify:track:4R5bSS8yoCl2czeWLr61aO");
-                }
-            }
-        });
-        binding.buttonOpenMusic.setOnClickListener(v ->{
-            listener.openMusic();
-        });
+//        binding.buttonLLLLL.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                mSpotifyAppRemote = spotifyViewModel.getSpotifyAppRemote().getValue();
+//                if (mSpotifyAppRemote == null) {
+//                    Log.d("PPP", "Spotify app not connected");
+//                }
+//                else {
+//                    accessToken = spotifyViewModel.getAccessToken().getValue();
+//                    Log.d("PPP", accessToken);
+//                    mSpotifyAppRemote.getPlayerApi().play("spotify:track:4R5bSS8yoCl2czeWLr61aO");
+//                }
+//            }
+//        });
+//        binding.buttonOpenMusic.setOnClickListener(v ->{
+//            listener.openMusic();
+//        });
     }
 
 
