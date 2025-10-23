@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -14,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -33,6 +35,10 @@ import com.example.rhithmfit.viewModels.SpotifyViewModel;
 
 import com.example.rhithmfit.databinding.FragmentHomeBinding;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 
@@ -42,6 +48,7 @@ public class HomeFragment extends Fragment {
     String current_user;
     FragmentHomeBinding binding;
     FirebaseAuth firebase_auth;
+    FirebaseFirestore db;
 
 //    private SpotifyAppRemote mSpotifyAppRemote;
     private String accessToken;
@@ -89,12 +96,7 @@ public class HomeFragment extends Fragment {
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerView.setAdapter(workoutListAdapter);
 
-        getParentFragmentManager().setFragmentResultListener("savedWorkout", this, (requestKey, result) -> {
-            String intensity = result.getString("intensity");
-            String date = result.getString("date");
-            savedWorkouts.add(new Workout(intensity, date));
-            workoutListAdapter.notifyDataSetChanged();
-        });
+        loadWorkoutSessions();
 
         binding.buttonLogout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -111,23 +113,42 @@ public class HomeFragment extends Fragment {
             }
         });
 
-//        binding.buttonLLLLL.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                mSpotifyAppRemote = spotifyViewModel.getSpotifyAppRemote().getValue();
-//                if (mSpotifyAppRemote == null) {
-//                    Log.d("PPP", "Spotify app not connected");
-//                }
-//                else {
-//                    accessToken = spotifyViewModel.getAccessToken().getValue();
-//                    Log.d("PPP", accessToken);
-//                    mSpotifyAppRemote.getPlayerApi().play("spotify:track:4R5bSS8yoCl2czeWLr61aO");
-//                }
-//            }
-//        });
-//        binding.buttonOpenMusic.setOnClickListener(v ->{
-//            listener.openMusic();
-//        });
+        binding.switchTheme.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(@NonNull CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                }
+                else {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                }
+            }
+        });
+    }
+
+    private void loadWorkoutSessions() {
+        db = FirebaseFirestore.getInstance();
+        db.collection("workout_sessions")
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        Log.e("FIRESTORE", "Error loading workouts", error);
+                        return;
+                    }
+
+                    if (value != null) {
+                        savedWorkouts.clear();
+                        for (var doc : value.getDocuments()) {
+                            String date = doc.getString("date");
+                            String name = doc.getString("name");
+                            String id = doc.getId();
+                            Workout workout = new Workout(name, id);
+                            savedWorkouts.add(workout);
+                        }
+
+                        workoutListAdapter.notifyDataSetChanged();
+                        Log.d("FIRESTORE", "Loaded " + savedWorkouts.size() + " workouts");
+                    }
+                });
     }
 
     class WorkoutListAdapter extends RecyclerView.Adapter<WorkoutListAdapter.WorkoutViewHolder> {
@@ -165,8 +186,12 @@ public class HomeFragment extends Fragment {
 
             public void bind(Workout workout) {
                 binding.textViewWorkoutName.setText(workout.getDisplayName());
-                binding.buttonStartWorkout.setOnClickListener(v ->
-                        Toast.makeText(itemView.getContext(), "Starting " + workout.getDisplayName(), Toast.LENGTH_SHORT).show());
+                binding.buttonStartWorkout.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        listener.openWorkoutDetails(workout.getId(), workout.getDisplayName());
+                    }
+                });
             }
         }
     }
@@ -188,5 +213,7 @@ public class HomeFragment extends Fragment {
         void logout();
         void goToWorkoutCreation();
         void openMusic();
+        void openWorkoutDetails(String workoutId, String name);
+
     }
 }

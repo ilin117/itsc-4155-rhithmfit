@@ -14,13 +14,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.example.rhithmfit.R;
+import com.example.rhithmfit.classes.Song;
 import com.example.rhithmfit.databinding.FragmentMusicBinding;
 import com.example.rhithmfit.databinding.FragmentWorkoutBuilderBinding;
 import com.example.rhithmfit.viewModels.SpotifyViewModel;
+import com.spotify.android.appremote.api.SpotifyAppRemote;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -45,12 +48,14 @@ public class WorkoutBuilderFragment extends Fragment {
     SpotifyViewModel spotifyViewModel;
     private static final String ME_TRACKS_URL = "https://api.spotify.com/v1/me/tracks";
     private final OkHttpClient http = new OkHttpClient();
-    private final List<String> titles = new ArrayList<>();
+    private final List<Song> titles = new ArrayList<>();
     private final List<String> workouts = new ArrayList<>();
     FragmentWorkoutBuilderBinding binding;
-    private ArrayAdapter<String> songAdapter;
+    private ArrayAdapter<Song> songAdapter;
     private ArrayAdapter<String> workoutAdapter;
     private static final String TAG = "MusicFragment";
+    private SpotifyAppRemote mSpotifyAppRemote;
+    private String accessToken;
     private final Handler main = new Handler(Looper.getMainLooper());
     String workout_intensity;
 
@@ -105,7 +110,22 @@ public class WorkoutBuilderFragment extends Fragment {
         binding.buttonCompletedWorkout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                listener.sendToWorkoutCompleted();
+                listener.sendToWorkoutCompleted(titles, workouts, workout_intensity);
+            }
+        });
+
+        binding.listViewSongsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                mSpotifyAppRemote = spotifyViewModel.getSpotifyAppRemote().getValue();
+                if (mSpotifyAppRemote == null) {
+                    Log.d("PPP", "Spotify app not connected");
+                }
+                else {
+                    accessToken = spotifyViewModel.getAccessToken().getValue();
+                    Log.d("PPP", accessToken);
+                    mSpotifyAppRemote.getPlayerApi().play("spotify:track:" + titles.get(position).getId());
+                }
             }
         });
     }
@@ -124,8 +144,8 @@ public class WorkoutBuilderFragment extends Fragment {
 
     private void fetchWorkouts() {
         Request request = new Request.Builder()
-                .url("https://exercisedb.p.rapidapi.com/exercises")
-                .addHeader("x-rapidapi-host", "exercisedb.p.rapidapi.com")
+                .url("https://gym-fit.p.rapidapi.com/v1/exercises/search?number=50")
+                .addHeader("x-rapidapi-host", "gym-fit.p.rapidapi.com")
                 .addHeader("x-rapidapi-key", "00fb2da46cmsh8e9f4b0be71d476p106048jsn81388490ab95")
                 .build();
 
@@ -141,7 +161,8 @@ public class WorkoutBuilderFragment extends Fragment {
                     String responseBody = response.body().string();
 
                     try {
-                        JSONArray exercises = new JSONArray(responseBody);
+                        JSONObject root = new JSONObject(responseBody);
+                        JSONArray exercises = root.getJSONArray("results");
                         List<JSONObject> workoutList = new ArrayList<>();
 
                         for (int i = 0; i < exercises.length(); i++) {
@@ -150,6 +171,10 @@ public class WorkoutBuilderFragment extends Fragment {
 
                         Collections.shuffle(workoutList);
                         List<JSONObject> randomSeven = workoutList.subList(0, 7);
+                        for (JSONObject workout : workoutList) {
+                            Log.d("HELLOWORLD", workout.getString("name"));
+                        }
+
 
                         workouts.clear();
                         for (JSONObject workout : randomSeven) {
@@ -209,18 +234,20 @@ public class WorkoutBuilderFragment extends Fragment {
                     JSONObject json = new JSONObject(responseBody.string());
                     JSONArray items = json.getJSONArray("items");
 
-                    List<String> fetchedTitles = new ArrayList<>();
+                    List<Song> fetchedTitles = new ArrayList<>();
 
                     for (int i = 0; i < items.length(); i++) {
                         JSONObject trackObj = items.getJSONObject(i).getJSONObject("track");
                         String name = trackObj.getString("name");
+                        String id = trackObj.getString("id");
                         String artist = trackObj.getJSONArray("artists").getJSONObject(0).getString("name");
-                        fetchedTitles.add(name + " – " + artist);
+                        Song song = new Song(name, artist, id);
+                        fetchedTitles.add(song);
                     }
 
                     Collections.shuffle(fetchedTitles);
 
-                    List<String> randomTracks = fetchedTitles.size() > 7
+                    List<Song> randomTracks = fetchedTitles.size() > 7
                             ? fetchedTitles.subList(0, 7)
                             : fetchedTitles;
 
@@ -254,6 +281,6 @@ public class WorkoutBuilderFragment extends Fragment {
 
     public interface WorkoutBuilderListener {
         void back();
-        void sendToWorkoutCompleted();
+        void sendToWorkoutCompleted(List<Song> titles, List<String> workouts, String workout_intensity);
     }
 }
