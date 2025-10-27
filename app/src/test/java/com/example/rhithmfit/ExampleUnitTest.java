@@ -12,6 +12,6 @@ import static org.junit.Assert.*;
 public class ExampleUnitTest {
     @Test
     public void workout_loaded() {
-
+        assertEquals(2, 1+1);
     }
 }
