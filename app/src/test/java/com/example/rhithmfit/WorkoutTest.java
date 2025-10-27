@@ -21,7 +21,7 @@ public class WorkoutTest {
         assertEquals("High", workout.getIntensity());
         assertEquals("2025-10-27", workout.getDate());
         assertEquals("xyz789", workout.getId());
-        assertNull(workout.getDisplayName()); // name not set in this constructor
+        assertNull(workout.getDisplayName());
     }
 
     @Test
