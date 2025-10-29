@@ -1,10 +1,12 @@
 package com.example.rhithmfit.fragments;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -26,6 +28,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import com.example.rhithmfit.R;
 import com.example.rhithmfit.classes.Workout;
+
+import java.util.Calendar;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -124,6 +128,56 @@ public class HomeFragment extends Fragment {
                 }
             }
         });
+        binding.buttonReminderSettings.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.openReminderSettings();
+            }
+        });
+        ShowWorkoutReminderPopup();
+    }
+    private void ShowWorkoutReminderPopup() {
+        SharedPreferences prefs = requireContext()
+                .getSharedPreferences(ReminderSettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
+
+        boolean enabled = prefs.getBoolean(ReminderSettingsFragment.KEY_ENABLED, false);
+        int targetHour = prefs.getInt(ReminderSettingsFragment.KEY_HOUR, 8);
+        int targetMinute = prefs.getInt(ReminderSettingsFragment.KEY_MINUTE, 0);
+        int lastShownDay = prefs.getInt(ReminderSettingsFragment.KEY_LAST_SHOWN_DAY, -1);
+
+        Calendar now = Calendar.getInstance();
+        int currentDay = now.get(Calendar.DAY_OF_YEAR);
+        int currentHour = now.get(Calendar.HOUR_OF_DAY);
+        int currentMinute = now.get(Calendar.MINUTE);
+
+        boolean pastTargetTime =
+                (currentHour > targetHour) ||
+                        (currentHour == targetHour && currentMinute >= targetMinute);
+
+        Log.d("RHYTHM_DEBUG",
+                "ShowWorkoutReminderPopup() enabled=" + enabled +
+                        " pastTargetTime=" + pastTargetTime +
+                        " lastShownDay=" + lastShownDay +
+                        " currentDay=" + currentDay);
+
+        if (enabled && pastTargetTime && lastShownDay != currentDay) {
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("RhithmFit Reminder")
+                    .setMessage("Time to work out 💪")
+                    .setPositiveButton("Let's go", (dialog, which) -> {
+                        if (listener != null) {
+                            listener.goToWorkoutCreation();
+                        }
+                    })
+                    .setNegativeButton("Later", (dialog, which) -> {
+                        dialog.dismiss();
+                    })
+                    .show();
+
+            prefs.edit()
+                    .putInt(ReminderSettingsFragment.KEY_LAST_SHOWN_DAY, currentDay)
+                    .apply();
+        }
     }
 
     private void loadWorkoutSessions() {
@@ -214,6 +268,7 @@ public class HomeFragment extends Fragment {
         void goToWorkoutCreation();
         void openMusic();
         void openWorkoutDetails(String workoutId, String name);
+        void openReminderSettings();
 
     }
 }

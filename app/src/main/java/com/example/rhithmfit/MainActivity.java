@@ -260,4 +260,14 @@ public class MainActivity extends AppCompatActivity implements ViewWorkoutFragme
                 .addToBackStack(null)
                 .commit();
     }
+
+    @Override
+    public void openReminderSettings() {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.main, new com.example.rhithmfit.fragments.ReminderSettingsFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
 }
