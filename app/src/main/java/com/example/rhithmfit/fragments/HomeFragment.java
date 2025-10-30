@@ -3,6 +3,11 @@ package com.example.rhithmfit.fragments;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.CompoundButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,40 +18,24 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.CompoundButton;
-import android.widget.Toast;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
-
 import com.example.rhithmfit.R;
 import com.example.rhithmfit.classes.Workout;
-
-import java.util.Calendar;
-import java.util.List;
-import java.util.ArrayList;
-
+import com.example.rhithmfit.databinding.FragmentHomeBinding;
 import com.example.rhithmfit.databinding.ListItemBinding;
 import com.example.rhithmfit.viewModels.SpotifyViewModel;
-//import com.spotify.android.appremote.api.SpotifyAppRemote;
-
-import com.example.rhithmfit.databinding.FragmentHomeBinding;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 public class HomeFragment extends Fragment {
+
+    private static final String THEME_PREFS = "theme_prefs";
+    private static final String KEY_DARK_MODE = "dark_mode";
+
     List<Workout> savedWorkouts = new ArrayList<>();
     WorkoutListAdapter workoutListAdapter;
     String current_user;
@@ -54,15 +43,12 @@ public class HomeFragment extends Fragment {
     FirebaseAuth firebase_auth;
     FirebaseFirestore db;
 
-//    private SpotifyAppRemote mSpotifyAppRemote;
     private String accessToken;
     SpotifyViewModel spotifyViewModel;
 
-    public HomeFragment() {
-        // Required empty public constructor
-    }
-    public static HomeFragment newInstance(String workout_intensity) {
+    public HomeFragment() { }
 
+    public static HomeFragment newInstance(String workout_intensity) {
         Bundle args = new Bundle();
         args.putString("Intensity", workout_intensity);
         HomeFragment fragment = new HomeFragment();
@@ -71,18 +57,21 @@ public class HomeFragment extends Fragment {
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-    }
-
-    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         spotifyViewModel = new ViewModelProvider(requireActivity()).get(SpotifyViewModel.class);
+
+        // Apply saved theme ASAP (before views inflate if possible)
+        boolean isDark = requireContext()
+                .getSharedPreferences(THEME_PREFS, Context.MODE_PRIVATE)
+                .getBoolean(KEY_DARK_MODE, false);
+        AppCompatDelegate.setDefaultNightMode(
+                isDark ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO
+        );
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         return binding.getRoot();
@@ -91,10 +80,13 @@ public class HomeFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         firebase_auth = FirebaseAuth.getInstance();
-        current_user = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
-        Log.d("Current User", current_user);
-        binding.textViewUserName.setText("Hello "+ current_user + "!");
+        current_user = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getDisplayName()
+                : "User";
+        Log.d("Current User", String.valueOf(current_user));
+        binding.textViewUserName.setText("Hello " + current_user + "!");
 
         workoutListAdapter = new WorkoutListAdapter(savedWorkouts);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -102,39 +94,37 @@ public class HomeFragment extends Fragment {
 
         loadWorkoutSessions();
 
-        binding.buttonLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                firebase_auth.signOut();
-                listener.logout();
-            }
+        binding.buttonLogout.setOnClickListener(v -> {
+            firebase_auth.signOut();
+            if (listener != null) listener.logout();
         });
 
-        binding.buttonHomeStartNewWorkout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                listener.goToWorkoutCreation();
-            }
+        binding.buttonHomeStartNewWorkout.setOnClickListener(v -> {
+            if (listener != null) listener.goToWorkoutCreation();
         });
+
+        // ---- Theme toggle ----
+        SharedPreferences themePrefs = requireContext().getSharedPreferences(THEME_PREFS, Context.MODE_PRIVATE);
+        boolean isDark = themePrefs.getBoolean(KEY_DARK_MODE, false);
+        binding.switchTheme.setChecked(isDark); // reflect saved state
 
         binding.switchTheme.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(@NonNull CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                }
-                else {
-                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                }
+                themePrefs.edit().putBoolean(KEY_DARK_MODE, isChecked).apply();
+                AppCompatDelegate.setDefaultNightMode(
+                        isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO
+                );
             }
         });
+
         binding.buttonReminderSettings.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.openReminderSettings();
-            }
+            if (listener != null) listener.openReminderSettings();
         });
+
         ShowWorkoutReminderPopup();
     }
+
     private void ShowWorkoutReminderPopup() {
         SharedPreferences prefs = requireContext()
                 .getSharedPreferences(ReminderSettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
@@ -149,9 +139,8 @@ public class HomeFragment extends Fragment {
         int currentHour = now.get(Calendar.HOUR_OF_DAY);
         int currentMinute = now.get(Calendar.MINUTE);
 
-        boolean pastTargetTime =
-                (currentHour > targetHour) ||
-                        (currentHour == targetHour && currentMinute >= targetMinute);
+        boolean pastTargetTime = (currentHour > targetHour) ||
+                (currentHour == targetHour && currentMinute >= targetMinute);
 
         Log.d("RHYTHM_DEBUG",
                 "ShowWorkoutReminderPopup() enabled=" + enabled +
@@ -165,13 +154,9 @@ public class HomeFragment extends Fragment {
                     .setTitle("RhithmFit Reminder")
                     .setMessage("Time to work out 💪")
                     .setPositiveButton("Let's go", (dialog, which) -> {
-                        if (listener != null) {
-                            listener.goToWorkoutCreation();
-                        }
+                        if (listener != null) listener.goToWorkoutCreation();
                     })
-                    .setNegativeButton("Later", (dialog, which) -> {
-                        dialog.dismiss();
-                    })
+                    .setNegativeButton("Later", (dialog, which) -> dialog.dismiss())
                     .show();
 
             prefs.edit()
@@ -191,14 +176,12 @@ public class HomeFragment extends Fragment {
 
                     if (value != null) {
                         savedWorkouts.clear();
-                        for (var doc : value.getDocuments()) {
-                            String date = doc.getString("date");
+                        for (DocumentSnapshot doc : value.getDocuments()) {
                             String name = doc.getString("name");
                             String id = doc.getId();
                             Workout workout = new Workout(name, id);
                             savedWorkouts.add(workout);
                         }
-
                         workoutListAdapter.notifyDataSetChanged();
                         Log.d("FIRESTORE", "Loaded " + savedWorkouts.size() + " workouts");
                     }
@@ -206,7 +189,7 @@ public class HomeFragment extends Fragment {
     }
 
     class WorkoutListAdapter extends RecyclerView.Adapter<WorkoutListAdapter.WorkoutViewHolder> {
-        private List<Workout> workouts;
+        private final List<Workout> workouts;
 
         public WorkoutListAdapter(List<Workout> workouts) {
             this.workouts = workouts;
@@ -240,16 +223,14 @@ public class HomeFragment extends Fragment {
 
             public void bind(Workout workout) {
                 binding.textViewWorkoutName.setText(workout.getDisplayName());
-                binding.buttonStartWorkout.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
+                binding.buttonStartWorkout.setOnClickListener(v -> {
+                    if (listener != null) {
                         listener.openWorkoutDetails(workout.getId(), workout.getDisplayName());
                     }
                 });
             }
         }
     }
-
 
     HomeListener listener;
 
@@ -269,6 +250,5 @@ public class HomeFragment extends Fragment {
         void openMusic();
         void openWorkoutDetails(String workoutId, String name);
         void openReminderSettings();
-
     }
 }

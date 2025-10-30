@@ -7,4 +7,5 @@
     <color name="grey">#36454f</color>
     <color name="secondary_grey">#5e7889</color>
     <color name="blue_gray">#7393B3</color>
+    <color name="app_background">@color/grey</color>
 </resources>
