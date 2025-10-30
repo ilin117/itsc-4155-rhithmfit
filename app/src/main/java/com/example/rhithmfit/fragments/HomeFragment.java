@@ -61,7 +61,6 @@ public class HomeFragment extends Fragment {
         super.onCreate(savedInstanceState);
         spotifyViewModel = new ViewModelProvider(requireActivity()).get(SpotifyViewModel.class);
 
-        // Apply saved theme ASAP (before views inflate if possible)
         boolean isDark = requireContext()
                 .getSharedPreferences(THEME_PREFS, Context.MODE_PRIVATE)
                 .getBoolean(KEY_DARK_MODE, false);
@@ -103,7 +102,6 @@ public class HomeFragment extends Fragment {
             if (listener != null) listener.goToWorkoutCreation();
         });
 
-        // ---- Theme toggle ----
         SharedPreferences themePrefs = requireContext().getSharedPreferences(THEME_PREFS, Context.MODE_PRIVATE);
         boolean isDark = themePrefs.getBoolean(KEY_DARK_MODE, false);
         binding.switchTheme.setChecked(isDark); // reflect saved state
