@@ -1,10 +1,12 @@
 package com.example.rhithmfit.fragments;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import android.util.Log;
@@ -12,10 +14,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 import com.example.rhithmfit.R;
 import com.example.rhithmfit.classes.Song;
 import com.example.rhithmfit.databinding.FragmentViewWorkoutBinding;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -100,16 +104,40 @@ public class ViewWorkoutFragment extends Fragment {
     }
 
     private void deleteWorkout() {
-        db = FirebaseFirestore.getInstance();
-        db.collection("workout_sessions").document(workoutId)
-                .delete()
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
-                        songAdapter.notifyDataSetChanged();
-                        workoutAdapter.notifyDataSetChanged();
-                    }
-                });
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Delete Workout");
+        builder.setMessage("Are you sure you want to delete this workout?");
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                db = FirebaseFirestore.getInstance();
+                db.collection("workout_sessions").document(workoutId)
+                        .delete()
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void unused) {
+                                Toast.makeText(getContext(), "Workout deleted successfully", Toast.LENGTH_SHORT).show();
+                                songAdapter.notifyDataSetChanged();
+                                workoutAdapter.notifyDataSetChanged();
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(getContext(), "Failed to delete workout", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        });
+
+        builder.create().show();
     }
 
     private void loadWorkout() {
