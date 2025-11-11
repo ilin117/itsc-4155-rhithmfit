@@ -13,6 +13,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.rhithmfit.classes.Song;
 import com.example.rhithmfit.fragments.HomeFragment;
 import com.example.rhithmfit.fragments.LandingFragment;
 import com.example.rhithmfit.fragments.LoginFragment;
@@ -20,6 +21,7 @@ import com.example.rhithmfit.fragments.MusicFragment;
 import com.example.rhithmfit.fragments.PasswordResetFragment;
 import com.example.rhithmfit.fragments.SignupFragment;
 import com.example.rhithmfit.fragments.SpotifyCheckFragment;
+import com.example.rhithmfit.fragments.ViewWorkoutFragment;
 import com.example.rhithmfit.fragments.WorkoutBuilderFragment;
 import com.example.rhithmfit.fragments.WorkoutCompletedFragment;
 import com.example.rhithmfit.fragments.WorkoutCreationFragment;
@@ -32,7 +34,9 @@ import com.spotify.sdk.android.auth.AuthorizationClient;
 import com.spotify.sdk.android.auth.AuthorizationRequest;
 import com.spotify.sdk.android.auth.AuthorizationResponse;
 
-public class MainActivity extends AppCompatActivity implements WorkoutCompletedFragment.WorkoutCompletedListener, WorkoutBuilderFragment.WorkoutBuilderListener, WorkoutCreationFragment.WorkoutCreationListener, SpotifyCheckFragment.SpotifyCheckListener, LandingFragment.LandingListener, LoginFragment.LoginListener, PasswordResetFragment.PasswordResetListener, HomeFragment.HomeListener, SignupFragment.SignupListener {
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity implements ViewWorkoutFragment.ViewWorkoutListener, WorkoutCompletedFragment.WorkoutCompletedListener, WorkoutBuilderFragment.WorkoutBuilderListener, WorkoutCreationFragment.WorkoutCreationListener, SpotifyCheckFragment.SpotifyCheckListener, LandingFragment.LandingListener, LoginFragment.LoginListener, PasswordResetFragment.PasswordResetListener, HomeFragment.HomeListener, SignupFragment.SignupListener {
 
     // spotify
     private static final int REQUEST_CODE = 1337;
@@ -130,9 +134,9 @@ public class MainActivity extends AppCompatActivity implements WorkoutCompletedF
     }
 
     @Override
-    public void sendToWorkoutCompleted() {
+    public void sendToWorkoutCompleted(List<Song> titles, List<String> workouts, String workout_intensity) {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.main, new WorkoutCompletedFragment())
+                .replace(R.id.main, WorkoutCompletedFragment.newInstance(titles, workouts, workout_intensity))
                 .addToBackStack(null)
                 .commit();
     }
@@ -240,6 +244,15 @@ public class MainActivity extends AppCompatActivity implements WorkoutCompletedF
     }
 
     @Override
+    public void openWorkoutDetails(String workoutId, String name) {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.main, ViewWorkoutFragment.newInstance(workoutId, name))
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
     public void sendToHome() {
         getSupportFragmentManager()
                 .beginTransaction()
@@ -247,4 +260,14 @@ public class MainActivity extends AppCompatActivity implements WorkoutCompletedF
                 .addToBackStack(null)
                 .commit();
     }
+
+    @Override
+    public void openReminderSettings() {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.main, new com.example.rhithmfit.fragments.ReminderSettingsFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
 }
